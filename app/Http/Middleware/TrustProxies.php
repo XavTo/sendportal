@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 class TrustProxies extends Middleware
 {
     /**
-     * Proxys de confiance (ici : tous les proxys en amont).
+     * Faire confiance aux proxys en amont (Railway).
      * Vous pouvez restreindre à une liste d’IP si besoin.
      *
      * @var array|string|null
@@ -16,9 +16,14 @@ class TrustProxies extends Middleware
     protected $proxies = '*';
 
     /**
-     * En-têtes à honorer pour détecter le schéma/hôte/port/IP réels.
+     * En-têtes à honorer pour détecter schéma/hôte/port/IP réels.
      *
      * @var int
      */
-    protected $headers = Request::HEADER_X_FORWARDED_ALL;
+    protected $headers =
+        Request::HEADER_X_FORWARDED_FOR |
+        Request::HEADER_X_FORWARDED_HOST |
+        Request::HEADER_X_FORWARDED_PORT |
+        Request::HEADER_X_FORWARDED_PROTO |
+        Request::HEADER_X_FORWARDED_AWS_ELB;
 }
