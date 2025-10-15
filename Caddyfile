@@ -1,14 +1,10 @@
 {
-    # Railway termine TLS en amont : on désactive l’auto HTTPS côté Caddy.
     auto_https off
     encode zstd br gzip
-    frankenphp
 }
 
 :{$PORT} {
     root * /app/public
-    php_server {
-        try_files {path} index.php
-    }
+    php_server
     file_server
 }

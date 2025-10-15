@@ -1,27 +1,28 @@
 #!/bin/sh
 set -e
 
-# APP_KEY : si manquante, on la génère (prérequis pour Laravel/SendPortal).
+# 1) Clé d’app (si absente)
 if [ -z "${APP_KEY}" ] || [ "${APP_KEY}" = "null" ] || [ "${APP_KEY}" = '""' ]; then
   php artisan key:generate --force
 fi
 
-# Caches (optionnel, mais recommandé en prod)
+# 2) Caches "safe" (PAS de route:cache à cause du conflit de routes)
+php artisan config:clear || true
+php artisan view:clear || true
 php artisan config:cache || true
-php artisan route:cache || true
-php artisan view:cache || true
+php artisan view:cache   || true
 
-# Publier les fichiers SendPortal (config, vues, langues, assets dont mix-manifest)
+# 3) Publier les fichiers SendPortal (config, vues, langues, assets -> public/vendor/sendportal/*)
 php artisan vendor:publish --provider="Sendportal\\Base\\SendportalBaseServiceProvider" --force
 
-# Migrations
+# 4) Migrations (la connexion DB est dispo au runtime sur Railway)
 php artisan migrate --force
 
-# Si vous utilisez la queue "database", créer la table jobs
+# 5) Si la queue DB est utilisée, préparer la table des jobs (idempotent)
 if [ "${QUEUE_CONNECTION}" = "database" ]; then
   php artisan queue:table || true
   php artisan migrate --force
 fi
 
-# Démarrage du serveur (Caddy + FrankenPHP)
+# 6) Démarrer FrankenPHP (Caddy + worker PHP) avec le Caddyfile
 exec frankenphp
