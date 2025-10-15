@@ -1,31 +1,30 @@
 FROM dunglas/frankenphp:php8.2-bookworm
 
-# Installer les extensions PHP nécessaires et zip
-RUN install-php-extensions pcntl bcmath pdo_pgsql pgsql pdo_mysql zip
+# Extensions PHP (PostgreSQL, etc.)
+RUN install-php-extensions pcntl bcmath pdo_pgsql pgsql zip
 
-# Installer les bibliothèques système nécessaires (si besoin)
+# Dépendances système utiles
 RUN apt-get update && apt-get install -y libzip-dev unzip \
     && rm -rf /var/lib/apt/lists/*
-
-# Copier le Caddyfile dans l’emplacement attendu
-COPY Caddyfile /etc/frankenphp/Caddyfile
 
 WORKDIR /app
 COPY . .
 
-# Installer Composer
+# Caddy/FrankenPHP lira ce fichier
+COPY Caddyfile /etc/frankenphp/Caddyfile
+
+# Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Installer les dépendances PHP
-RUN composer install --no-interaction --optimize-autoloader
+# Dépendances PHP (prod)
+RUN composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader
 
-# (Optionnel) générer les assets si tu as le `package.json` dans le bon dossier, sinon les inclure déjà
-# Si tu génères localement, tu ne fais rien ici
-# RUN cd vendor/mettle/sendportal-core && npm install && npm run production
+# Permissions Laravel usuelles
+RUN chown -R www-data:www-data storage bootstrap/cache && \
+    chmod -R ug+rwx storage bootstrap/cache
 
-# Exécuter les migrations (et éventuellement sp:install) via commande d’entrée ou script
-# Tu peux lancer ici :
-RUN php artisan migrate --force
+# Entrypoint (migrations, publish assets, etc.)
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Définir la commande de démarrage : lancer FrankenPHP (qui démarre le serveur + Caddy)
-CMD ["frankenphp"]
+CMD ["/entrypoint.sh"]
