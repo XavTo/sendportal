@@ -1,7 +1,7 @@
 FROM dunglas/frankenphp:php8.2-bookworm
 
 # Installer les extensions PHP nécessaires et zip
-RUN install-php-extensions pcntl bcmath pdo_pgsql pgsql zip
+RUN install-php-extensions pcntl bcmath pdo_pgsql pgsql pdo_mysql zip
 
 # Installer les bibliothèques système nécessaires (si besoin)
 RUN apt-get update && apt-get install -y libzip-dev unzip \
