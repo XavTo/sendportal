@@ -1,10 +1,10 @@
 {
     auto_https off
-    encode zstd br gzip
 }
 
 :{$PORT} {
     root * /app/public
+    encode zstd br gzip
     php_server
     file_server
 }
