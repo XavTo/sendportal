@@ -1,15 +1,11 @@
 {
-    # Configuration globale de FrankenPHP / Caddy
-    # Par exemple, désactiver auto HTTPS si tu utilises un proxy ou TLS externe
+    # Railway termine TLS en amont : on désactive l’auto HTTPS côté Caddy.
     auto_https off
     encode zstd br gzip
-    frankenphp {
-        # On peut définir worker ou autres options si nécessaire
-        # worker public/index.php  (facultatif, si tu utilises mode worker)
-    }
+    frankenphp
 }
 
-:80 {
+:{$PORT} {
     root * /app/public
     php_server {
         try_files {path} index.php
