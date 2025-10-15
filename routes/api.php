@@ -6,13 +6,17 @@ use App\Http\Middleware\RequireWorkspace;
 use Illuminate\Support\Facades\Route;
 use Sendportal\Base\Facades\Sendportal;
 
+// Routes API existantes (SendPortal)
 Route::middleware([
     config('sendportal-host.throttle_middleware'),
     RequireWorkspace::class,
 ])->group(function () {
-    // Auth'd API routes (workspace-level auth!).
     Sendportal::apiRoutes();
 });
-
-// Non-auth'd API routes.
 Sendportal::publicApiRoutes();
+
+// --- Déclencheur cron interne protégé --- //
+Route::post('/internal/trigger-schedule', function () {
+    \Artisan::call('schedule:run', []);
+    return response()->json(['ok' => true]);
+})->middleware(['throttle:5,1', 'cron.secret'])->name('internal.trigger-schedule');
