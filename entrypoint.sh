@@ -1,28 +1,28 @@
 #!/bin/sh
 set -e
 
-# 1) Clé d’app (si absente)
+# 1) APP_KEY si absente
 if [ -z "${APP_KEY}" ] || [ "${APP_KEY}" = "null" ] || [ "${APP_KEY}" = '""' ]; then
   php artisan key:generate --force
 fi
 
-# 2) Caches "safe" (PAS de route:cache à cause du conflit de routes)
+# 2) Caches "safe" (pas de route:cache pour éviter les conflits de nom)
 php artisan config:clear || true
-php artisan view:clear || true
+php artisan view:clear   || true
 php artisan config:cache || true
 php artisan view:cache   || true
 
-# 3) Publier les fichiers SendPortal (config, vues, langues, assets -> public/vendor/sendportal/*)
+# 3) Publier les assets SendPortal (génère le mix-manifest attendu)
 php artisan vendor:publish --provider="Sendportal\\Base\\SendportalBaseServiceProvider" --force
 
-# 4) Migrations (la connexion DB est dispo au runtime sur Railway)
+# 4) Migrations
 php artisan migrate --force
 
-# 5) Si la queue DB est utilisée, préparer la table des jobs (idempotent)
+# 5) Queue (optionnel)
 if [ "${QUEUE_CONNECTION}" = "database" ]; then
   php artisan queue:table || true
   php artisan migrate --force
 fi
 
-# 6) Démarrer FrankenPHP (Caddy + worker PHP) avec le Caddyfile
-exec frankenphp
+# 6) Démarrage serveur (← CHANGEMENT ICI)
+exec frankenphp run --config /etc/frankenphp/Caddyfile
