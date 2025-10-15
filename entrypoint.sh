@@ -14,6 +14,13 @@ php artisan view:cache   || true
 
 # 3) Publier les assets SendPortal (génère le mix-manifest attendu)
 php artisan vendor:publish --provider="Sendportal\\Base\\SendportalBaseServiceProvider" --force
+echo "---- MIX MANIFEST ----"
+php -r 'echo @file_get_contents("public/vendor/sendportal/mix-manifest.json") ?: "absent\n";'
+echo "\n---- LISTING ----"
+ls -lah public/vendor/sendportal || true
+ls -lah public/vendor/sendportal/css || true
+ls -lah public/vendor/sendportal/js  || true
+echo "----------------------"
 
 # 4) Migrations
 php artisan migrate --force
