@@ -2,9 +2,7 @@
 set -e
 
 # 0) Publier Horizon si la config n'existe pas encore (premier run)
-if [ ! -f "config/horizon.php" ]; then
-  php artisan horizon:install || true
-fi
+php artisan horizon:publish || true
 
 # 1) Caches "safe"
 php artisan config:clear || true
