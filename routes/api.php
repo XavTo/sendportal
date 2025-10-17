@@ -17,6 +17,18 @@ Sendportal::publicApiRoutes();
 
 // --- Déclencheur cron interne protégé --- //
 Route::post('/internal/trigger-schedule', function () {
-    \Artisan::call('schedule:run', []);
-    return response()->json(['ok' => true]);
+    \Log::info('Schedule trigger called', ['timestamp' => now()]);
+    
+    $exitCode = \Artisan::call('schedule:run', []);
+    
+    \Log::info('Schedule run completed', [
+        'exit_code' => $exitCode,
+        'output' => \Artisan::output()
+    ]);
+    
+    return response()->json([
+        'ok' => true,
+        'exit_code' => $exitCode,
+        'output' => \Artisan::output()
+    ]);
 })->middleware(['throttle:5,1', 'cron.secret'])->name('internal.trigger-schedule');
